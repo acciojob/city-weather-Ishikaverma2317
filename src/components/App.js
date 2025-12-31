@@ -1,51 +1,73 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { Component } from "react";
+import "../styles/App.css";
 
-const API_KEY = "e467712b257e418838be97cc881a71de";
+const API_KEY = "YOUR_API_KEY_HERE";
 
-function App() {
-  const [query, setQuery] = useState("");
-  const [weather, setWeather] = useState(null);
+class App extends Component {
+  state = {
+    city: "",
+    weatherData: null,
+    error: ""
+  };
 
-  const search = async (e) => {
-    if (e.key === "Enter") {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=${API_KEY}`
+  handleChange = (e) => {
+    this.setState({ city: e.target.value });
+  };
+
+  fetchWeather = async () => {
+    const { city } = this.state;
+    if (!city) return;
+
+    try {
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
       );
-      setWeather(response.data);
-      setQuery("");
+      const data = await res.json();
+
+      if (data.cod !== 200) {
+        this.setState({ error: "City not found", weatherData: null });
+        return;
+      }
+
+      this.setState({ weatherData: data, error: "" });
+    } catch (err) {
+      this.setState({ error: "Something went wrong" });
     }
   };
 
-  const kelvinToFahrenheit = (k) => ((k - 273.15) * 9) / 5 + 32;
+  render() {
+    const { weatherData, error } = this.state;
 
-  return (
-    <div className="app">
-      <input
-        type="text"
-        className="search"
-        placeholder="Enter a city"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyPress={search}
-      />
-      {weather && (
-        <div className="weather">
-          <div className="city">{weather.name}</div>
-          <div className="temperature">
-            {Math.round(kelvinToFahrenheit(weather.main.temp))}°F
-          </div>
-          <div className="description">{weather.weather[0].description}</div>
-          <div className="icon">
+    return (
+      <div className="app">
+        <h1>City Weather</h1>
+
+        {/* Search Input */}
+        <input
+          type="text"
+          className="search"
+          placeholder="Enter city name"
+          onChange={this.handleChange}
+        />
+        <button onClick={this.fetchWeather}>Search</button>
+
+        {/* Weather Output */}
+        {weatherData && (
+          <div className="weather">
+            <h2>{weatherData.name}</h2>
+            <p>{weatherData.weather[0].description}</p>
+            <p>{weatherData.main.temp} °C</p>
             <img
-              src={`http://openweathermap.org/img/w/${weather.weather[0].icon}.png`}
-              alt={weather.weather[0].description}
+              src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
+              alt="weather icon"
             />
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+
+        {error && <p>{error}</p>}
+      </div>
+    );
+  }
 }
 
 export default App;
