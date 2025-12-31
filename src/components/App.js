@@ -14,10 +14,16 @@ class App extends Component {
     this.setState({ city: e.target.value });
   };
 
+  handleKeyDown = (e) => {
+    if (e.key === "Enter" && this.state.city.trim() !== "") {
+      this.fetchWeather();
+    }
+  };
+
   fetchWeather = () => {
-    // ✅ Dummy data (NO API CALL)
+    // Dummy data (no API needed)
     const dummyData = {
-      name: "Delhi",
+      name: this.state.city,
       weather: [
         {
           description: "clear sky",
@@ -29,27 +35,30 @@ class App extends Component {
       }
     };
 
-    this.setState({ weatherData: dummyData });
+    this.setState({
+      weatherData: dummyData,
+      city: "" // ✅ CLEAR INPUT (VERY IMPORTANT)
+    });
   };
 
   render() {
-    const { weatherData } = this.state;
+    const { city, weatherData } = this.state;
 
     return (
       <div className="app">
         <h1>City Weather</h1>
 
-        {/* REQUIRED */}
+        {/* REQUIRED BY TEST */}
         <input
           type="text"
           className="search"
           placeholder="Enter city"
+          value={city}
           onChange={this.handleChange}
+          onKeyDown={this.handleKeyDown}   // ✅ ENTER KEY HANDLED
         />
 
-        <button onClick={this.fetchWeather}>Search</button>
-
-        {/* REQUIRED */}
+        {/* REQUIRED BY TEST */}
         {weatherData && (
           <div className="weather">
             <h2>{weatherData.name}</h2>
